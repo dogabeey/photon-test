@@ -6,14 +6,13 @@ using TMPro;
 using Photon.Pun;
 using Photon.Realtime;
 
-public class MultiplayerManager : MonoBehaviourPunCallbacks
+public partial class MultiplayerManager : MonoBehaviourPunCallbacks
 {
+    public string playerPrefabName = "PlayerPrefab"; // Name of the player prefab to instantiate in the room.
     public GameObject lobbyObject;
-    public GameObject roomObject;
     public TMP_InputField roomName; // Used for either joining or creating a room.
     public Button joinRoomButton;
     public Button createRoomButton;
-    public Button disconnectButton; // Disconnects the user from the room.
     public TMP_Text errorText; // Text to display errors or messages to the user.
     // Start is called before the first frame update
     void Start()
@@ -26,7 +25,6 @@ public class MultiplayerManager : MonoBehaviourPunCallbacks
 
         joinRoomButton.onClick.AddListener(JoinRoom);
         createRoomButton.onClick.AddListener(CreateRoom);
-        disconnectButton.onClick.AddListener(DisconnectFromRoom);
     }
 
     public override void OnConnectedToMaster()
@@ -41,8 +39,23 @@ public class MultiplayerManager : MonoBehaviourPunCallbacks
     {
         base.OnJoinedRoom();
 
-        roomObject.SetActive(true);
         lobbyObject.SetActive(false);
+
+        OnJoinedOrCreatedRoom();
+    }
+    public override void OnCreatedRoom()
+    {
+        base.OnCreatedRoom();
+
+        OnJoinedOrCreatedRoom();
+    }
+    public void OnJoinedOrCreatedRoom()
+    {
+        // Generate a random position for the player
+        Vector3 pos = new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-4f, 4f));
+        // Generate a random angle for the player
+        Quaternion angle = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+        PhotonNetwork.Instantiate(playerPrefabName, pos, angle, 0);
     }
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
@@ -60,7 +73,6 @@ public class MultiplayerManager : MonoBehaviourPunCallbacks
     {
         base.OnLeftRoom();
 
-        roomObject.SetActive(false);
         lobbyObject.SetActive(true);
     }
 
